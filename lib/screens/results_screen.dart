@@ -55,8 +55,8 @@ class _ScoreCard extends StatelessWidget {
         q.quiz.totalQuestions,
         q.quiz.scorePercentage,
       ),
-      child: Column(
-        children: [const Text('Quiz Completed!'), const SizedBox(height: 20)],
+      child: const Column(
+        children: [Text('Quiz Completed!'), SizedBox(height: 20)],
       ),
       builder: (_, data, child) {
         final (correct, total, percent) = data;
@@ -89,9 +89,9 @@ class _StatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Selector<QuizNotifier, (int, int)>(
       selector: (_, q) => (q.quiz.correctAnswers, q.quiz.totalQuestions),
-      builder: (_, data, _) {
+      builder: (_, data, __) {
         final (correct, total) = data;
-        // debugPrint('Rebuilding stat card');
+
         return Card(
           child: Column(
             children: [
@@ -151,29 +151,56 @@ class _QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<QuizNotifier, (String, String, bool)>(
+    return Selector<
+      QuizNotifier,
+      (String question, String user, String correct, bool isCorrect)
+    >(
       selector: (_, q) {
-        // debugPrint('Rebuilding Question ReviewList');
         final question = q.quiz.questions[index];
 
-        final answerIndex = q.quiz.userAnswers[question.id];
+        final userIndex = q.quiz.userAnswers[question.id];
 
-        final answerText = answerIndex != null
-            ? question.options[answerIndex]
+        final userText = userIndex != null
+            ? question.options[userIndex]
             : 'Not answered';
 
-        final isCorrect = answerIndex == question.correctOptionIndex;
+        final correctText = question.options[question.correctOptionIndex];
 
-        return (question.question, answerText, isCorrect);
+        final isCorrect = userIndex == question.correctOptionIndex;
+
+        return (question.question, userText, correctText, isCorrect);
       },
       builder: (_, data, __) {
-        final (questionText, answerText, isCorrect) = data;
+        final (questionText, userText, correctText, isCorrect) = data;
 
         return Card(
           color: isCorrect ? Colors.green[50] : Colors.red[50],
-          child: ListTile(
-            title: Text(questionText),
-            subtitle: Text(answerText),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  questionText,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text('Your answer: $userText'),
+
+                if (!isCorrect) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Correct answer: $correctText',
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         );
       },
@@ -191,7 +218,6 @@ class _RetakeButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: () {
         quiz.resetQuiz();
-        // context.go('/');
       },
       icon: const Icon(Icons.refresh),
       label: const Text('Retake Quiz'),
