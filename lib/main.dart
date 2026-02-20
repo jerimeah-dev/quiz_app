@@ -31,7 +31,12 @@ class App extends StatelessWidget {
       refreshListenable: quizNotifier,
       redirect: (context, state) {
         final isResultRoute = state.matchedLocation == '/results';
-        if (isResultRoute && !quizNotifier.isQuizComplete) {
+        final isHomeRoute = state.matchedLocation == '/';
+        final quizStarted = quizNotifier.isStarted;
+        if (!isHomeRoute && !quizStarted) {
+          return '/';
+        }
+        if (isResultRoute && quizStarted && !quizNotifier.isQuizComplete) {
           return '/quiz';
         }
 

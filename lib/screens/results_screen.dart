@@ -153,14 +153,14 @@ class ResultsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                ElevatedButton.icon(
-                  onPressed: () {
-                    quizNotifier.resetQuiz();
-                    context.go('/');
-                  },
-                  icon: const Icon(Icons.home),
-                  label: const Text('Back to Home'),
-                ),
+                // ElevatedButton.icon(
+                //   onPressed: () {
+                //     quizNotifier.resetQuiz();
+                //     context.go('/');
+                //   },
+                //   icon: const Icon(Icons.home),
+                //   label: const Text('Back to Home'),
+                // ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () {

@@ -9,14 +9,13 @@ class QuizScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final quizNotifier = context.read<QuizNotifier>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quiz'),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.go('/'),
+          onPressed: () => context.pop('/'),
         ),
       ),
 
@@ -30,6 +29,7 @@ class QuizScreen extends StatelessWidget {
               int? selected,
               bool isLast,
               bool isComplete,
+              bool canGoNext,
             })
           >(
             selector: (_, q) => (
@@ -39,9 +39,10 @@ class QuizScreen extends StatelessWidget {
               selected: q.getCurrentAnswer(),
               isLast: q.isLastQuestion,
               isComplete: q.isQuizComplete,
+              canGoNext: q.canGoNext,
             ),
-
-            builder: (context, view, _) {
+            child: const Text('Quiz Progress', style: TextStyle(fontSize: 30)),
+            builder: (context, view, child) {
               final questionNumber = view.index + 1;
 
               return Padding(
@@ -49,6 +50,7 @@ class QuizScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    child!,
                     LinearProgressIndicator(
                       value: questionNumber / view.total,
                       minHeight: 8,
@@ -61,7 +63,7 @@ class QuizScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 48),
 
                     Text(
                       view.question.question,
@@ -128,11 +130,16 @@ class QuizScreen extends StatelessWidget {
 
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: view.isLast
-                                ? () => context.go('/results')
-                                : quizNotifier.canGoNext
+                            onPressed: view.canGoNext
                                 ? () {
-                                    quizNotifier.nextQuestion();
+                                    if (view.isLast) {
+                                      context.read<QuizNotifier>().submitQuiz();
+                                      context.go('/results');
+                                    } else {
+                                      context
+                                          .read<QuizNotifier>()
+                                          .nextQuestion();
+                                    }
                                   }
                                 : null,
                             child: Text(view.isLast ? 'Submit' : 'Next'),

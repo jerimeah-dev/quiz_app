@@ -4,80 +4,116 @@ import '../models/quiz_models.dart';
 final List<Question> sampleQuestions = [
   Question(
     id: 1,
-    question: 'What is the capital of France?',
-    options: ['London', 'Berlin', 'Paris', 'Madrid'],
-    correctOptionIndex: 2,
-  ),
-  Question(
-    id: 2,
-    question: 'Which planet is known as the Red Planet?',
-    options: ['Venus', 'Mars', 'Jupiter', 'Saturn'],
-    correctOptionIndex: 1,
-  ),
-  Question(
-    id: 3,
-    question: 'What is the largest ocean on Earth?',
-    options: ['Atlantic', 'Indian', 'Arctic', 'Pacific'],
-    correctOptionIndex: 3,
-  ),
-  Question(
-    id: 4,
-    question: 'Who painted the Mona Lisa?',
+    question: 'What is the main purpose of the BuildContext in Flutter?',
     options: [
-      'Vincent van Gogh',
-      'Leonardo da Vinci',
-      'Pablo Picasso',
-      'Michelangelo',
+      'Stores widget state permanently',
+      'Access location in the widget tree and inherited data',
+      'Handles navigation automatically',
+      'Caches widgets for performance',
     ],
     correctOptionIndex: 1,
   ),
   Question(
+    id: 2,
+    question:
+        'Which method is called every time Flutter needs to redraw a widget?',
+    options: ['initState()', 'didChangeDependencies()', 'build()', 'dispose()'],
+    correctOptionIndex: 2,
+  ),
+  Question(
+    id: 3,
+    question:
+        'What is the difference between StatelessWidget and StatefulWidget?',
+    options: [
+      'Stateless is faster only',
+      'Stateful stores mutable state separately using State object',
+      'Stateless cannot have children',
+      'Stateful cannot rebuild',
+    ],
+    correctOptionIndex: 1,
+  ),
+  Question(
+    id: 4,
+    question:
+        'Which widget helps prevent unnecessary rebuilds of child widgets?',
+    options: ['Expanded', 'Builder', 'const constructor', 'Scaffold'],
+    correctOptionIndex: 2,
+  ),
+  Question(
     id: 5,
-    question: 'What is the chemical symbol for Gold?',
-    options: ['Go', 'Gd', 'Au', 'Ag'],
+    question:
+        'What happens when notifyListeners() is called in ChangeNotifier?',
+    options: [
+      'App restarts',
+      'All widgets rebuild',
+      'Listening widgets rebuild',
+      'State is cleared',
+    ],
     correctOptionIndex: 2,
   ),
   Question(
     id: 6,
-    question: 'Which country is home to the Great Wall?',
-    options: ['Japan', 'Korea', 'China', 'Vietnam'],
-    correctOptionIndex: 2,
+    question: 'Which is TRUE about the Flutter rendering pipeline?',
+    options: [
+      'Widgets render directly to screen',
+      'Build → Layout → Paint → Compositing',
+      'Paint happens before layout',
+      'Only layout phase exists',
+    ],
+    correctOptionIndex: 1,
   ),
   Question(
     id: 7,
-    question: 'What is the smallest prime number?',
-    options: ['0', '1', '2', '3'],
+    question: 'When should you use FutureBuilder?',
+    options: [
+      'For synchronous data only',
+      'To cache widgets',
+      'To react to async computation results',
+      'To manage animations',
+    ],
     correctOptionIndex: 2,
   ),
   Question(
     id: 8,
-    question: 'Which tree is known to live the longest?',
-    options: ['Oak', 'Bristlecone Pine', 'Redwood', 'Cypress'],
-    correctOptionIndex: 1,
-  ),
-  Question(
-    id: 9,
-    question: 'What is the currency of Japan?',
-    options: ['Won', 'Pound', 'Yen', 'Rupee'],
+    question: 'What is the benefit of using keys in Flutter widgets?',
+    options: [
+      'Improve network speed',
+      'Prevent rebuilds entirely',
+      'Preserve widget identity during tree changes',
+      'Enable hot reload',
+    ],
     correctOptionIndex: 2,
   ),
   Question(
-    id: 10,
-    question: 'Which element has the atomic number 1?',
-    options: ['Helium', 'Hydrogen', 'Lithium', 'Beryllium'],
+    id: 9,
+    question: 'Which approach reduces rebuild scope for better performance?',
+    options: [
+      'setState() at root widget',
+      'Using Selector/Consumer for partial rebuilds',
+      'Calling build() manually',
+      'Using more StatefulWidgets',
+    ],
     correctOptionIndex: 1,
+  ),
+  Question(
+    id: 10,
+    question: 'What does const in Flutter widgets primarily provide?',
+    options: [
+      'Async behavior',
+      'Memory allocation at runtime',
+      'Compile-time canonicalization and fewer rebuilds',
+      'Bigger widget trees',
+    ],
+    correctOptionIndex: 2,
   ),
 ];
 
 class QuizNotifier extends ChangeNotifier {
-  late Quiz _quiz;
+  Quiz _quiz = Quiz(questions: sampleQuestions);
   int _currentQuestionIndex = 0;
+  bool isSubmitted = false;
+  bool isStarted = false;
   bool get canGoNext => getCurrentAnswer() != null;
-
-  QuizNotifier() {
-    _quiz = Quiz(questions: sampleQuestions);
-  }
-
   Quiz get quiz => _quiz;
   int get currentQuestionIndex => _currentQuestionIndex;
 
@@ -92,7 +128,7 @@ class QuizNotifier extends ChangeNotifier {
       _currentQuestionIndex < _quiz.questions.length - 1;
   bool get isLastQuestion =>
       _currentQuestionIndex == _quiz.questions.length - 1;
-  bool get isQuizComplete => _quiz.isAllAnswered;
+  bool get isQuizComplete => _quiz.isAllAnswered && isSubmitted;
 
   void selectAnswer(int optionIndex) {
     _quiz.selectAnswer(currentQuestion.id, optionIndex);
@@ -115,12 +151,20 @@ class QuizNotifier extends ChangeNotifier {
   }
 
   void submitQuiz() {
+    isSubmitted = true;
     notifyListeners();
   }
 
   void resetQuiz() {
+    isSubmitted = false;
+    isStarted = false;
     _quiz = Quiz(questions: sampleQuestions);
     _currentQuestionIndex = 0;
+    notifyListeners();
+  }
+
+  void startQuiz() {
+    isStarted = true;
     notifyListeners();
   }
 
