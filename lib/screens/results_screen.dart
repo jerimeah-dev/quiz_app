@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../notifiers/quiz_notifier.dart';
 
@@ -8,173 +7,103 @@ class ResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Results'),
-        centerTitle: true,
-        leading: const SizedBox(),
+    return const Scaffold(
+      appBar: _ResultsAppBar(),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _ScoreCard(),
+            SizedBox(height: 32),
+            _StatsCard(),
+            SizedBox(height: 32),
+            _QuestionReviewList(),
+            SizedBox(height: 16),
+            _RetakeButton(),
+          ],
+        ),
       ),
-      body: Consumer<QuizNotifier>(
-        builder: (context, quizNotifier, _) {
-          final quiz = quizNotifier.quiz;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+    );
+  }
+}
+
+class _ResultsAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _ResultsAppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text('Results'),
+      centerTitle: true,
+      leading: const SizedBox(),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _ScoreCard extends StatelessWidget {
+  const _ScoreCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<QuizNotifier, (int, int, double)>(
+      selector: (_, q) => (
+        q.quiz.correctAnswers,
+        q.quiz.totalQuestions,
+        q.quiz.scorePercentage,
+      ),
+      child: Column(
+        children: [const Text('Quiz Completed!'), const SizedBox(height: 20)],
+      ),
+      builder: (_, data, child) {
+        final (correct, total, percent) = data;
+
+        return Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Quiz Completed!',
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          '${quiz.correctAnswers}/${quiz.totalQuestions}',
-                          style: Theme.of(context).textTheme.displayMedium
-                              ?.copyWith(
-                                color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${quiz.scorePercentage.toStringAsFixed(1)}% Correct',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
+                child!,
                 Text(
-                  'Statistics',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  '$correct/$total',
+                  style: Theme.of(context).textTheme.displayMedium,
                 ),
-                const SizedBox(height: 16),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        _StatRow(
-                          label: 'Correct Answers',
-                          value: '${quiz.correctAnswers}',
-                        ),
-                        const Divider(),
-                        _StatRow(
-                          label: 'Wrong Answers',
-                          value: '${quiz.totalQuestions - quiz.correctAnswers}',
-                        ),
-                        const Divider(),
-                        _StatRow(
-                          label: 'Total Questions',
-                          value: '${quiz.totalQuestions}',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                Text(
-                  'Question Review',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: quiz.questions.length,
-                  itemBuilder: (context, index) {
-                    final question = quiz.questions[index];
-                    final userAnswerIndex = quiz.userAnswers[question.id];
-                    final isCorrect =
-                        userAnswerIndex == question.correctOptionIndex;
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      color: isCorrect ? Colors.green[50] : Colors.red[50],
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  isCorrect ? Icons.check_circle : Icons.cancel,
-                                  color: isCorrect ? Colors.green : Colors.red,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Q${index + 1}: ${question.question}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            _AnswerDisplay(
-                              label: 'Your Answer:',
-                              answer: userAnswerIndex != null
-                                  ? question.options[userAnswerIndex]
-                                  : 'Not answered',
-                              isCorrect: isCorrect,
-                            ),
-                            if (!isCorrect) ...[
-                              const SizedBox(height: 8),
-                              _AnswerDisplay(
-                                label: 'Correct Answer:',
-                                answer: question
-                                    .options[question.correctOptionIndex],
-                                isCorrect: true,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // ElevatedButton.icon(
-                //   onPressed: () {
-                //     quizNotifier.resetQuiz();
-                //     context.go('/');
-                //   },
-                //   icon: const Icon(Icons.home),
-                //   label: const Text('Back to Home'),
-                // ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    quizNotifier.resetQuiz();
-                    context.go('/quiz');
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retake Quiz'),
-                ),
+                Text('${percent.toStringAsFixed(1)}% Correct'),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _StatsCard extends StatelessWidget {
+  const _StatsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<QuizNotifier, (int, int)>(
+      selector: (_, q) => (q.quiz.correctAnswers, q.quiz.totalQuestions),
+      builder: (_, data, _) {
+        final (correct, total) = data;
+        // debugPrint('Rebuilding stat card');
+        return Card(
+          child: Column(
+            children: [
+              _StatRow('Correct Answers', '$correct'),
+              const Divider(),
+              _StatRow('Wrong Answers', '${total - correct}'),
+              const Divider(),
+              _StatRow('Total Questions', '$total'),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -183,57 +112,89 @@ class _StatRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatRow({required this.label, required this.value});
+  const _StatRow(this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }
 
-class _AnswerDisplay extends StatelessWidget {
-  final String label;
-  final String answer;
-  final bool isCorrect;
-
-  const _AnswerDisplay({
-    required this.label,
-    required this.answer,
-    required this.isCorrect,
-  });
+class _QuestionReviewList extends StatelessWidget {
+  const _QuestionReviewList();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            border: Border.all(color: isCorrect ? Colors.green : Colors.red),
-            borderRadius: BorderRadius.circular(4),
+    final total = context.read<QuizNotifier>().quiz.totalQuestions;
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: total,
+      itemBuilder: (_, index) => _QuestionCard(index),
+    );
+  }
+}
+
+class _QuestionCard extends StatelessWidget {
+  final int index;
+  const _QuestionCard(this.index);
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<QuizNotifier, (String, String, bool)>(
+      selector: (_, q) {
+        // debugPrint('Rebuilding Question ReviewList');
+        final question = q.quiz.questions[index];
+
+        final answerIndex = q.quiz.userAnswers[question.id];
+
+        final answerText = answerIndex != null
+            ? question.options[answerIndex]
+            : 'Not answered';
+
+        final isCorrect = answerIndex == question.correctOptionIndex;
+
+        return (question.question, answerText, isCorrect);
+      },
+      builder: (_, data, __) {
+        final (questionText, answerText, isCorrect) = data;
+
+        return Card(
+          color: isCorrect ? Colors.green[50] : Colors.red[50],
+          child: ListTile(
+            title: Text(questionText),
+            subtitle: Text(answerText),
           ),
-          child: Text(answer, style: Theme.of(context).textTheme.bodyMedium),
-        ),
-      ],
+        );
+      },
+    );
+  }
+}
+
+class _RetakeButton extends StatelessWidget {
+  const _RetakeButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final quiz = context.read<QuizNotifier>();
+
+    return OutlinedButton.icon(
+      onPressed: () {
+        quiz.resetQuiz();
+        // context.go('/');
+      },
+      icon: const Icon(Icons.refresh),
+      label: const Text('Retake Quiz'),
     );
   }
 }

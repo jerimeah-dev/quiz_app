@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 context.read<QuizNotifier>().startQuiz();
-                context.go('/quiz');
+                context.push('/quiz');
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -42,6 +42,7 @@ class HomeScreen extends StatelessWidget {
               child: Selector<QuizNotifier, bool>(
                 selector: (_, q) => q.isStarted,
                 builder: (_, started, _) {
+                  // debugPrint('Button rebuild');
                   return Text(started ? 'Resume Quiz' : 'Start Quiz');
                 },
               ),

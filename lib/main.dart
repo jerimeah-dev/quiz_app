@@ -34,6 +34,7 @@ class App extends StatelessWidget {
         final isHomeRoute = state.matchedLocation == '/';
         final quizStarted = quizNotifier.isStarted;
         if (!isHomeRoute && !quizStarted) {
+          // debugPrint('redirecting to /');
           return '/';
         }
         if (isResultRoute && quizStarted && !quizNotifier.isQuizComplete) {
@@ -43,9 +44,9 @@ class App extends StatelessWidget {
         return null;
       },
       routes: [
-        GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
-        GoRoute(path: '/quiz', builder: (_, __) => const QuizScreen()),
-        GoRoute(path: '/results', builder: (_, __) => const ResultsScreen()),
+        GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+        GoRoute(path: '/quiz', builder: (_, _) => const QuizScreen()),
+        GoRoute(path: '/results', builder: (_, _) => const ResultsScreen()),
       ],
     );
 

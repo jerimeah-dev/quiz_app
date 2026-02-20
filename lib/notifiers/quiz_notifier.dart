@@ -113,6 +113,7 @@ class QuizNotifier extends ChangeNotifier {
   int _currentQuestionIndex = 0;
   bool isSubmitted = false;
   bool isStarted = false;
+
   bool get canGoNext => getCurrentAnswer() != null;
   Quiz get quiz => _quiz;
   int get currentQuestionIndex => _currentQuestionIndex;
