@@ -32,7 +32,13 @@ class App extends StatelessWidget {
       redirect: (context, state) {
         final isResultRoute = state.matchedLocation == '/results';
         final isHomeRoute = state.matchedLocation == '/';
+        final isQuizRoute = state.matchedLocation == '/quiz';
         final quizStarted = quizNotifier.isStarted;
+
+        if ((isQuizRoute || isHomeRoute) && quizNotifier.isSubmitted) {
+          return '/results';
+        }
+
         if (!isHomeRoute && !quizStarted) {
           // debugPrint('redirecting to /');
           return '/';
